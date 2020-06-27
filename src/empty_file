@@ -1,0 +1,70 @@
+  connection.query(query, function (error, results, fields) {
+            if (error) throw error;
+            if(results.length > 0){
+                var restaurants = [];
+                for(var i = 0 ; i < results.length ; i++){
+                    restaurants[i] = {
+                        name:results[i].r_name,
+                        id:results[i].r_id
+                    };
+                }
+
+                console.log(restaurants);
+
+                res.render("profile" , {
+                    user:results[0].u_name,
+                    id:results[0].u_id,
+                    email:results[0].u_email,
+                    city:results[0].u_city,
+                    district:results[0].u_district,
+                    phone:results[0].u_phone,
+                    grantedAccses: sess.grantedAccses,
+                    restaurants:restaurants,
+                    pageTitle:"Profile"
+                });
+            }else{
+                res.send("eerrr");
+            }
+        });
+        
+        
+        
+        app.post("/editRestaurant/:rid", function(req , res){
+    var sess = req.session;
+    if(sess.grantedAccses == "true"){
+        req.body.restaurant.body = sanitizeHTML(req.body.restaurant.body);
+        var restaurant = req.body.restaurant;
+        var name = restaurant.name.trim();
+        var city = restaurant.city.trim();
+        var district = restaurant.district.trim();
+        var type = restaurant.type.trim();
+
+
+        var query = 'UPDATE Restaurant SET r_name="'+ 
+        name + 
+        '",r_city="' +
+        city + 
+        '",r_city="' +
+        city +
+        '",r_district="' +
+        district + 
+        '",r_type="' +
+        type +
+        '" WHERE r_id=' + req.params.rid;
+        console.log(query);
+        connection.query(query, function (error, results, fields) {
+            if (error) throw error; 
+            res.render("editRestaurant.ejs" , {
+                user:sess.user , 
+                id:sess.uid, 
+                grantedAccses:sess.grantedAccses,
+                restaurant: results[0],
+                pageTitle:"Edit Restaurant"
+            });
+        });
+        res.redirect("/profile");
+    }else{
+        res.send(req.params.rid);
+    }
+});
+
